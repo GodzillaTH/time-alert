@@ -19,22 +19,22 @@
             animation: glow-green 1.5s infinite alternate;
         }
         @keyframes glow-green {
-            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
-            to { text-shadow: 0 0 10px #34d399, 0 0 20px #34d399, 0 0 30px #34d399; }
+            from { box-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            to { box-shadow: 0 0 10px #34d399, 0 0 20px #34d399, 0 0 30px #34d399; }
         }
         .glow-yellow {
             animation: glow-yellow 1.5s infinite alternate;
         }
         @keyframes glow-yellow {
-            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
-            to { text-shadow: 0 0 10px #f59e0b, 0 0 20px #f59e0b, 0 0 30px #f59e0b; }
+            from { box-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            to { box-shadow: 0 0 10px #f59e0b, 0 0 20px #f59e0b, 0 0 30px #f59e0b; }
         }
         .glow-red {
             animation: glow-red 1.5s infinite alternate;
         }
         @keyframes glow-red {
-            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
-            to { text-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444; }
+            from { box-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            to { box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444; }
         }
 
         /* Dark Mode styles */
@@ -88,7 +88,7 @@
 
         <!-- Main Timer Display -->
         <div class="flex flex-col items-center justify-center mb-8">
-            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 glow-green transition-colors duration-500">00:00:00</div>
+            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 transition-colors duration-500">00:00:00</div>
             
             <!-- Horizontal Progress Bar -->
             <div id="progressBarContainer" class="w-full h-2 bg-gray-200 rounded-full mt-4 overflow-hidden">
@@ -215,20 +215,26 @@
             // Update progress bar
             progressBar.style.width = `${percentage}%`;
 
-            // Remove previous classes
+            // Remove previous classes for both progress bar and app container
             progressBar.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
-            countdownEl.classList.remove('text-red-500', 'text-yellow-500', 'text-green-500', 'glow-red', 'glow-yellow', 'glow-green');
+            appContainer.classList.remove('glow-red', 'glow-yellow', 'glow-green');
 
             // Add new classes based on percentage
             if (percentage <= 10) {
                 progressBar.classList.add('bg-red-500');
-                countdownEl.classList.add('text-red-500', 'glow-red');
+                countdownEl.classList.add('text-red-500');
+                countdownEl.classList.remove('text-yellow-500', 'text-green-500');
+                appContainer.classList.add('glow-red');
             } else if (percentage <= 25) {
                 progressBar.classList.add('bg-yellow-500');
-                countdownEl.classList.add('text-yellow-500', 'glow-yellow');
+                countdownEl.classList.add('text-yellow-500');
+                countdownEl.classList.remove('text-red-500', 'text-green-500');
+                appContainer.classList.add('glow-yellow');
             } else {
                 progressBar.classList.add('bg-green-500');
-                countdownEl.classList.add('text-green-500', 'glow-green');
+                countdownEl.classList.add('text-green-500');
+                countdownEl.classList.remove('text-red-500', 'text-yellow-500');
+                appContainer.classList.add('glow-green');
             }
         }
 
@@ -248,7 +254,7 @@
                     if (totalSeconds <= 0) {
                         clearInterval(timerInterval);
                         countdownEl.textContent = "หมดเวลา!";
-                        countdownEl.classList.remove('glow-green', 'glow-yellow', 'glow-red');
+                        appContainer.classList.remove('glow-green', 'glow-yellow', 'glow-red');
                         countdownEl.classList.add('text-red-500');
                         showAlert("หมดเวลาสอบแล้ว!");
                         audioAlert.play(); // Play the sound alert
@@ -319,7 +325,7 @@
             settingsModal.classList.add('hidden');
         });
 
-        setBtn.addEventListener('click', () => {
+setBtn.addEventListener('click', () => {
             const h = parseInt(hoursInput.value) || 0;
             const m = parseInt(minutesInput.value) || 0;
             const s = parseInt(secondsInput.value) || 0;
