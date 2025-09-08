@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมจับเวลาถอยหลังสำหรับสอบ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .timer-glow {
+            animation: glow 1.5s infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            to { text-shadow: 0 0 10px #34d399, 0 0 20px #34d399, 0 0 30px #34d399; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-transform duration-500 ease-in-out scale-95 hover:scale-100">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-6">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight">
+                โปรแกรมจับเวลาถอยหลัง
+            </h1>
+            <p class="mt-2 text-gray-500 text-lg">สำหรับผู้เข้าสอบ</p>
+        </header>
+
+        <!-- Main Timer Display -->
+        <div class="flex flex-col items-center justify-center mb-8">
+            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 timer-glow">00:00:00</div>
+            <div id="current-time" class="mt-2 text-xl font-medium text-gray-400"></div>
+        </div>
+
+        <!-- Alert Section -->
+        <div id="alert-box" class="hidden text-center bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-xl mb-6 transition-all duration-300 ease-in-out">
+            <p id="alert-message" class="font-semibold text-lg"></p>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mb-6">
+            <button id="startButton" class="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-green-600 transition-colors duration-200">
+                เริ่ม
+            </button>
+            <button id="pauseButton" class="px-6 py-3 bg-yellow-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-yellow-600 transition-colors duration-200" disabled>
+                หยุดชั่วคราว
+            </button>
+            <button id="resetButton" class="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-red-600 transition-colors duration-200" disabled>
+                รีเซ็ต
+            </button>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="flex flex-col items-center gap-4 md:flex-row justify-center">
+            <div class="w-full md:w-auto">
+                <label for="hours" class="block text-gray-700 font-medium mb-1">ชั่วโมง:</label>
+                <input type="number" id="hours" value="0" min="0" class="w-full md:w-24 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+            </div>
+            <div class="w-full md:w-auto">
+                <label for="minutes" class="block text-gray-700 font-medium mb-1">นาที:</label>
+                <input type="number" id="minutes" value="60" min="0" max="59" class="w-full md:w-24 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+            </div>
+            <div class="w-full md:w-auto">
+                <label for="seconds" class="block text-gray-700 font-medium mb-1">วินาที:</label>
+                <input type="number" id="seconds" value="0" min="0" max="59" class="w-full md:w-24 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+            </div>
+            <button id="setButton" class="w-full md:w-auto mt-4 md:mt-0 px-8 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-600 transition-colors duration-200">
+                ตั้งค่า
+            </button>
+        </div>
+
+        <!-- Footer for copyright/info -->
+        <footer class="text-center mt-8 text-sm text-gray-400">
+            &copy; 2024 Exam Timer. All Rights Reserved.
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const countdownEl = document.getElementById('countdown');
+        const currentTimeEl = document.getElementById('current-time');
+        const startBtn = document.getElementById('startButton');
+        const pauseBtn = document.getElementById('pauseButton');
+        const resetBtn = document.getElementById('resetButton');
+        const setBtn = document.getElementById('setButton');
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        const alertBox = document.getElementById('alert-box');
+        const alertMessage = document.getElementById('alert-message');
+
+        // State variables
+        let timerInterval;
+        let isPaused = false;
+        let totalSeconds;
+        let originalTotalSeconds;
+
+        // Function to update the current time and date
+        function updateCurrentTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            currentTimeEl.textContent = now.toLocaleDateString('th-TH', options);
+        }
+
+        // Function to format time
+        function formatTime(seconds) {
+            const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        // Function to show alerts
+        function showAlert(message) {
+            alertMessage.textContent = message;
+            alertBox.classList.remove('hidden');
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 5000); // Hide alert after 5 seconds
+        }
+
+        // Main countdown function
+        function countdown() {
+            const initialTotalSeconds = totalSeconds;
+
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    if (totalSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        countdownEl.textContent = "หมดเวลา!";
+                        countdownEl.classList.remove('timer-glow');
+                        countdownEl.classList.add('text-red-500');
+                        showAlert("หมดเวลาสอบแล้ว!");
+                        startBtn.disabled = true;
+                        pauseBtn.disabled = true;
+                        return;
+                    }
+
+                    const remaining = totalSeconds;
+
+                    // Alert logic
+                    if (remaining === 30 * 60) {
+                        showAlert("เหลือเวลา 30 นาที");
+                    } else if (remaining === 15 * 60) {
+                        showAlert("เหลือเวลา 15 นาที");
+                    } else if (remaining === 5 * 60) {
+                        showAlert("เหลือเวลา 5 นาที");
+                    }
+
+                    totalSeconds--;
+                    countdownEl.textContent = formatTime(remaining);
+                }
+            }, 1000);
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            if (isPaused) {
+                isPaused = false;
+                startBtn.textContent = "เริ่ม";
+                startBtn.classList.remove('bg-gray-500');
+                startBtn.classList.add('bg-green-500');
+            } else {
+                if (totalSeconds === undefined) {
+                    // Initial start without setting, use default 60 minutes
+                    const minutes = parseInt(minutesInput.value);
+                    const hours = parseInt(hoursInput.value);
+                    const seconds = parseInt(secondsInput.value);
+                    totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+                    originalTotalSeconds = totalSeconds;
+                    if (totalSeconds <= 0) {
+                        showAlert("โปรดตั้งเวลาที่ถูกต้อง");
+                        return;
+                    }
+                    countdown();
+                } else {
+                    countdown();
+                }
+            }
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            resetBtn.disabled = false;
+            setBtn.disabled = true;
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            isPaused = true;
+            clearInterval(timerInterval);
+            startBtn.textContent = "ดำเนินการต่อ";
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        });
+
+        resetBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            isPaused = false;
+            totalSeconds = originalTotalSeconds;
+            if (totalSeconds === undefined) {
+                countdownEl.textContent = "00:00:00";
+            } else {
+                countdownEl.textContent = formatTime(totalSeconds);
+            }
+            startBtn.textContent = "เริ่ม";
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            resetBtn.disabled = true;
+            setBtn.disabled = false;
+            alertBox.classList.add('hidden');
+            countdownEl.classList.remove('text-red-500');
+            countdownEl.classList.add('timer-glow');
+        });
+
+        setBtn.addEventListener('click', () => {
+            const h = parseInt(hoursInput.value) || 0;
+            const m = parseInt(minutesInput.value) || 0;
+            const s = parseInt(secondsInput.value) || 0;
+            totalSeconds = (h * 3600) + (m * 60) + s;
+            originalTotalSeconds = totalSeconds;
+            if (totalSeconds <= 0) {
+                showAlert("โปรดตั้งเวลาที่ถูกต้อง");
+                return;
+            }
+            countdownEl.textContent = formatTime(totalSeconds);
+            startBtn.disabled = false;
+            resetBtn.disabled = false;
+            alertBox.classList.add('hidden');
+            countdownEl.classList.remove('text-red-500');
+            countdownEl.classList.add('timer-glow');
+        });
+
+        // Initialize display
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+    </script>
+</body>
+</html>
