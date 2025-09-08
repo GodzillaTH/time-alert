@@ -24,7 +24,8 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-transform duration-500 ease-in-out scale-95 hover:scale-100">
+    <!-- Main App Container -->
+    <div id="app-container" class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-transform duration-500 ease-in-out scale-95 hover:scale-100">
         
         <!-- Header Section -->
         <header class="text-center mb-6">
@@ -56,31 +57,49 @@
             <button id="resetButton" class="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-red-600 transition-colors duration-200" disabled>
                 รีเซ็ต
             </button>
+            <button id="openSettingsButton" class="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-600 transition-colors duration-200">
+                ตั้งค่าเวลา
+            </button>
         </div>
 
-        <!-- Settings Section -->
-        <div class="flex flex-col items-center gap-4 md:flex-row justify-center">
-            <div class="w-full md:w-auto">
-                <label for="hours" class="block text-gray-700 font-medium mb-1">ชั่วโมง:</label>
-                <input type="number" id="hours" value="0" min="0" class="w-full md:w-24 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
-            </div>
-            <div class="w-full md:w-auto">
-                <label for="minutes" class="block text-gray-700 font-medium mb-1">นาที:</label>
-                <input type="number" id="minutes" value="60" min="0" max="59" class="w-full md:w-24 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
-            </div>
-            <div class="w-full md:w-auto">
-                <label for="seconds" class="block text-gray-700 font-medium mb-1">วินาที:</label>
-                <input type="number" id="seconds" value="0" min="0" max="59" class="w-full md:w-24 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
-            </div>
-            <button id="setButton" class="w-full md:w-auto mt-4 md:mt-0 px-8 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-600 transition-colors duration-200">
-                ตั้งค่า
+        <!-- Fullscreen Button -->
+        <div class="flex justify-center mt-4">
+            <button id="fullscreenButton" class="text-gray-500 text-sm font-medium hover:text-blue-500 transition-colors duration-200">
+                เข้าสู่โหมดเต็มหน้าจอ
             </button>
         </div>
 
         <!-- Footer for copyright/info -->
         <footer class="text-center mt-8 text-sm text-gray-400">
-            &copy; 2568 งานศูนย์ข้อมูลสารสนเทศ วิทยาลัยพณิชยการเชตุพน.สงวนลิขสิทธิ์
+            &copy; 2568 งานศูนย์ข้อมูลสารสนเทศ วิทยาลัยพณิชยการเชตุพน สงวนลิขสิทธิ์
         </footer>
+    </div>
+
+    <!-- Settings Modal (Popup) -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">ตั้งค่าเวลา</h2>
+            <div class="flex flex-col items-center gap-4">
+                <div class="w-full">
+                    <label for="hours" class="block text-gray-700 font-medium mb-1">ชั่วโมง:</label>
+                    <input type="number" id="modal-hours" value="0" min="0" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+                <div class="w-full">
+                    <label for="minutes" class="block text-gray-700 font-medium mb-1">นาที:</label>
+                    <input type="number" id="modal-minutes" value="60" min="0" max="59" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+                <div class="w-full">
+                    <label for="seconds" class="block text-gray-700 font-medium mb-1">วินาที:</label>
+                    <input type="number" id="modal-seconds" value="0" min="0" max="59" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                </div>
+            </div>
+            <button id="setButton" class="w-full mt-6 px-8 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-600 transition-colors duration-200">
+                ตั้งค่า
+            </button>
+            <button id="closeModalButton" class="w-full mt-2 text-gray-500 font-medium hover:text-gray-700 transition-colors duration-200">
+                ยกเลิก
+            </button>
+        </div>
     </div>
 
     <script>
@@ -90,18 +109,22 @@
         const startBtn = document.getElementById('startButton');
         const pauseBtn = document.getElementById('pauseButton');
         const resetBtn = document.getElementById('resetButton');
+        const fullscreenBtn = document.getElementById('fullscreenButton');
+        const openSettingsBtn = document.getElementById('openSettingsButton');
+        const settingsModal = document.getElementById('settingsModal');
         const setBtn = document.getElementById('setButton');
-        const hoursInput = document.getElementById('hours');
-        const minutesInput = document.getElementById('minutes');
-        const secondsInput = document.getElementById('seconds');
+        const closeModalBtn = document.getElementById('closeModalButton');
+        const hoursInput = document.getElementById('modal-hours');
+        const minutesInput = document.getElementById('modal-minutes');
+        const secondsInput = document.getElementById('modal-seconds');
         const alertBox = document.getElementById('alert-box');
         const alertMessage = document.getElementById('alert-message');
 
         // State variables
         let timerInterval;
         let isPaused = false;
-        let totalSeconds;
-        let originalTotalSeconds;
+        let totalSeconds = 3600; // Default to 60 minutes (3600 seconds)
+        let originalTotalSeconds = 3600;
 
         // Function to update the current time and date
         function updateCurrentTime() {
@@ -129,8 +152,6 @@
 
         // Main countdown function
         function countdown() {
-            const initialTotalSeconds = totalSeconds;
-
             timerInterval = setInterval(() => {
                 if (!isPaused) {
                     if (totalSeconds <= 0) {
@@ -166,29 +187,12 @@
             if (isPaused) {
                 isPaused = false;
                 startBtn.textContent = "เริ่ม";
-                startBtn.classList.remove('bg-gray-500');
-                startBtn.classList.add('bg-green-500');
-            } else {
-                if (totalSeconds === undefined) {
-                    // Initial start without setting, use default 60 minutes
-                    const minutes = parseInt(minutesInput.value);
-                    const hours = parseInt(hoursInput.value);
-                    const seconds = parseInt(secondsInput.value);
-                    totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-                    originalTotalSeconds = totalSeconds;
-                    if (totalSeconds <= 0) {
-                        showAlert("โปรดตั้งเวลาที่ถูกต้อง");
-                        return;
-                    }
-                    countdown();
-                } else {
-                    countdown();
-                }
             }
+            countdown();
             startBtn.disabled = true;
             pauseBtn.disabled = false;
             resetBtn.disabled = false;
-            setBtn.disabled = true;
+            openSettingsBtn.disabled = true;
         });
 
         pauseBtn.addEventListener('click', () => {
@@ -203,19 +207,23 @@
             clearInterval(timerInterval);
             isPaused = false;
             totalSeconds = originalTotalSeconds;
-            if (totalSeconds === undefined) {
-                countdownEl.textContent = "00:00:00";
-            } else {
-                countdownEl.textContent = formatTime(totalSeconds);
-            }
+            countdownEl.textContent = formatTime(totalSeconds);
             startBtn.textContent = "เริ่ม";
             startBtn.disabled = false;
             pauseBtn.disabled = true;
             resetBtn.disabled = true;
-            setBtn.disabled = false;
+            openSettingsBtn.disabled = false;
             alertBox.classList.add('hidden');
             countdownEl.classList.remove('text-red-500');
             countdownEl.classList.add('timer-glow');
+        });
+
+        openSettingsBtn.addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
         });
 
         setBtn.addEventListener('click', () => {
@@ -229,16 +237,38 @@
                 return;
             }
             countdownEl.textContent = formatTime(totalSeconds);
+            settingsModal.classList.add('hidden');
             startBtn.disabled = false;
             resetBtn.disabled = false;
+            openSettingsBtn.disabled = false;
             alertBox.classList.add('hidden');
             countdownEl.classList.remove('text-red-500');
             countdownEl.classList.add('timer-glow');
         });
 
+        // Fullscreen functionality
+        fullscreenBtn.addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen().catch(err => {
+                    showAlert(`ไม่สามารถเปิดโหมดเต็มหน้าจอได้: ${err.message}`);
+                });
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = 'ออกจากโหมดเต็มหน้าจอ';
+            } else {
+                fullscreenBtn.textContent = 'เข้าสู่โหมดเต็มหน้าจอ';
+            }
+        });
+
         // Initialize display
         updateCurrentTime();
         setInterval(updateCurrentTime, 1000);
+        countdownEl.textContent = formatTime(originalTotalSeconds);
     </script>
 </body>
 </html>
