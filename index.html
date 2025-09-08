@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>โปรแกรมจับเวลาถอยหลังสำหรับสอบ</title>
+    <link rel="icon" href="https://img5.pic.in.th/file/secure-sv1/4ba0c364-a331-4886-b8d0-a4e13bf63bbd.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,61 +16,43 @@
             transition: background-color 0.5s ease-in-out;
         }
         /* Dynamic Glow Animations based on color */
-        .glow-green {
-            animation: glow-green 1.5s infinite alternate;
-        }
+        .glow-green { animation: glow-green 1.5s infinite alternate; }
         @keyframes glow-green {
             from { box-shadow: 0 0 5px #fff, 0 0 10px #fff; }
             to { box-shadow: 0 0 10px #34d399, 0 0 20px #34d399, 0 0 30px #34d399; }
         }
-        .glow-yellow {
-            animation: glow-yellow 1.5s infinite alternate;
-        }
+        .glow-yellow { animation: glow-yellow 1.5s infinite alternate; }
         @keyframes glow-yellow {
             from { box-shadow: 0 0 5px #fff, 0 0 10px #fff; }
             to { box-shadow: 0 0 10px #f59e0b, 0 0 20px #f59e0b, 0 0 30px #f59e0b; }
         }
-        .glow-red {
-            animation: glow-red 1.5s infinite alternate;
-        }
+        .glow-red { animation: glow-red 1.5s infinite alternate; }
         @keyframes glow-red {
             from { box-shadow: 0 0 5px #fff, 0 0 10px #fff; }
             to { box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444; }
         }
 
         /* Dark Mode styles */
-        body.dark-mode {
-            background-color: #1a202c;
-        }
-        .dark-mode .bg-white {
-            background-color: #2d3748;
-        }
-        .dark-mode .text-gray-800 {
-            color: #e2e8f0;
-        }
-        .dark-mode .text-gray-500 {
-            color: #a0aec0;
-        }
-        .dark-mode .text-gray-400 {
-            color: #718096;
-        }
-        .dark-mode .text-gray-700 {
-            color: #e2e8f0;
-        }
-        .dark-mode .border-gray-300 {
-            border-color: #4a5568;
-        }
-        .dark-mode .shadow-2xl {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .dark-mode .bg-yellow-100 {
-            background-color: #4a5568;
-        }
-        .dark-mode .border-yellow-300 {
-            border-color: #4a5568;
-        }
-        .dark-mode .text-yellow-800 {
-            color: #e2e8f0;
+        body.dark-mode { background-color: #1a202c; }
+        .dark-mode .bg-white { background-color: #2d3748; }
+        .dark-mode .text-gray-800 { color: #e2e8f0; }
+        .dark-mode .text-gray-500 { color: #a0aec0; }
+        .dark-mode .text-gray-400 { color: #718096; }
+        .dark-mode .text-gray-700 { color: #e2e8f0; }
+        .dark-mode .border-gray-300 { border-color: #4a5568; }
+        .dark-mode .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .dark-mode .bg-yellow-100 { background-color: #4a5568; }
+        .dark-mode .border-yellow-300 { border-color: #4a5568; }
+        .dark-mode .text-yellow-800 { color: #e2e8f0; }
+
+        /* Custom style for the print area */
+        @media print {
+            body > *:not(#print-area) {
+                display: none !important;
+            }
+            #print-area {
+                display: block !important;
+            }
         }
     </style>
 </head>
@@ -88,8 +71,13 @@
 
         <!-- Main Timer Display -->
         <div class="flex flex-col items-center justify-center mb-8">
-            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 transition-colors duration-500">00:00:00</div>
+            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 transition-colors duration-500">01:00:00</div>
             
+            <!-- Paused/Waiting Message -->
+            <p id="status-message" class="text-xl text-gray-500 font-semibold mt-2 hidden">
+                กำลังรอ...
+            </p>
+
             <!-- Horizontal Progress Bar -->
             <div id="progressBarContainer" class="w-full h-2 bg-gray-200 rounded-full mt-4 overflow-hidden">
                 <div id="progressBar" class="h-full rounded-full transition-all duration-1000 ease-linear"></div>
@@ -101,6 +89,22 @@
         <!-- Alert Section -->
         <div id="alert-box" class="hidden text-center bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-xl mb-6 transition-all duration-300 ease-in-out">
             <p id="alert-message" class="font-semibold text-lg"></p>
+        </div>
+        
+        <!-- Modal for Summary Report -->
+        <div id="summaryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">สรุปเวลาสอบ</h2>
+                <div id="summaryContent"></div>
+                <div class="flex justify-center mt-6">
+                    <button id="closeSummaryButton" class="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg hover:bg-blue-600 transition-colors duration-200">
+                        ปิด
+                    </button>
+                    <button id="printSummaryButton" class="ml-4 px-6 py-3 bg-gray-500 text-white rounded-xl font-semibold text-lg hover:bg-gray-600 transition-colors duration-200">
+                        พิมพ์
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Control Buttons -->
@@ -116,6 +120,9 @@
             </button>
             <button id="openSettingsButton" class="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-600 transition-colors duration-200">
                 ตั้งค่าเวลา
+            </button>
+            <button id="summaryButton" class="px-6 py-3 bg-indigo-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-indigo-600 transition-colors duration-200 hidden">
+                สรุป
             </button>
         </div>
 
@@ -136,23 +143,55 @@
     </div>
 
     <!-- Settings Modal (Popup) -->
-    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">ตั้งค่าเวลา</h2>
+
+            <!-- Standard Duration Settings -->
             <div class="flex flex-col items-center gap-4">
-                <div class="w-full">
-                    <label for="hours" class="block text-gray-700 font-medium mb-1">ชั่วโมง:</label>
-                    <input type="number" id="modal-hours" value="0" min="0" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
-                </div>
-                <div class="w-full">
-                    <label for="minutes" class="block text-gray-700 font-medium mb-1">นาที:</label>
-                    <input type="number" id="modal-minutes" value="60" min="0" max="59" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
-                </div>
-                <div class="w-full">
-                    <label for="seconds" class="block text-gray-700 font-medium mb-1">วินาที:</label>
-                    <input type="number" id="modal-seconds" value="0" min="0" max="59" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                <label for="modal-hours" class="block text-gray-700 font-medium mb-1">ระยะเวลา</label>
+                <div class="w-full flex justify-center gap-2">
+                    <input type="number" id="modal-hours" value="1" min="0" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">ชั่วโมง</span>
+                    <input type="number" id="modal-minutes" value="0" min="0" max="59" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">นาที</span>
+                    <input type="number" id="modal-seconds" value="0" min="0" max="59" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">วินาที</span>
                 </div>
             </div>
+            
+            <!-- Alert Time Settings -->
+            <div class="mt-6 flex flex-col items-center gap-4">
+                <label class="block text-gray-700 font-medium mb-1">เวลาแจ้งเตือน (นาทีสุดท้าย)</label>
+                <div class="w-full flex justify-center gap-2">
+                    <input type="number" id="alert-time-30" value="30" min="1" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">นาที</span>
+                    <input type="number" id="alert-time-15" value="15" min="1" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">นาที</span>
+                    <input type="number" id="alert-time-5" value="5" min="1" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">นาที</span>
+                </div>
+            </div>
+
+            <!-- Toggle for Advanced Settings -->
+            <div class="flex items-center justify-between my-6">
+                <label for="advanced-toggle" class="text-gray-700 font-medium">เปิดการตั้งค่าขั้นสูง</label>
+                <input type="checkbox" id="advanced-toggle" class="h-5 w-5 rounded-full text-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Advanced Real-time Settings -->
+            <div id="advanced-settings" class="flex flex-col items-center gap-4 hidden">
+                <label class="block text-gray-700 font-medium mb-1">เวลาเริ่มต้น (อิงตามเวลาจริง)</label>
+                <div class="w-full flex justify-center gap-2">
+                    <input type="number" id="start-time-hours" min="0" max="23" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">ชั่วโมง</span>
+                    <input type="number" id="start-time-minutes" min="0" max="59" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">นาที</span>
+                    <input type="number" id="start-time-seconds" min="0" max="59" class="w-1/3 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                    <span class="text-gray-700 self-center">วินาที</span>
+                </div>
+            </div>
+
             <button id="setButton" class="w-full mt-6 px-8 py-3 bg-blue-500 text-white rounded-xl font-semibold text-lg shadow-md hover:bg-blue-600 transition-colors duration-200">
                 ตั้งค่า
             </button>
@@ -163,7 +202,7 @@
     </div>
 
     <!-- Audio element for the alert sound -->
-    <audio id="audioAlert" src="https://www.soundjay.com/button/beep-07a.mp3" preload="auto"></audio>
+    <audio id="audioAlert" src="https://freesound.org/data/previews/321/321523_5813354-lq.mp3" preload="auto"></audio>
 
     <script>
         // DOM Elements
@@ -180,18 +219,115 @@
         const hoursInput = document.getElementById('modal-hours');
         const minutesInput = document.getElementById('modal-minutes');
         const secondsInput = document.getElementById('modal-seconds');
+        const advancedToggle = document.getElementById('advanced-toggle');
+        const advancedSettingsDiv = document.getElementById('advanced-settings');
+        const startTimeHoursInput = document.getElementById('start-time-hours');
+        const startTimeMinutesInput = document.getElementById('start-time-minutes');
+        const startTimeSecondsInput = document.getElementById('start-time-seconds');
         const alertBox = document.getElementById('alert-box');
         const alertMessage = document.getElementById('alert-message');
         const audioAlert = document.getElementById('audioAlert');
         const darkModeToggle = document.getElementById('darkModeToggle');
         const progressBar = document.getElementById('progressBar');
         const appContainer = document.getElementById('app-container');
-        
+        const statusMessageEl = document.getElementById('status-message');
+        const summaryButton = document.getElementById('summaryButton');
+        const summaryModal = document.getElementById('summaryModal');
+        const summaryContent = document.getElementById('summaryContent');
+        const closeSummaryButton = document.getElementById('closeSummaryButton');
+        const printSummaryButton = document.getElementById('printSummaryButton');
+        const alert30Input = document.getElementById('alert-time-30');
+        const alert15Input = document.getElementById('alert-time-15');
+        const alert5Input = document.getElementById('alert-time-5');
+
         // State variables
         let timerInterval;
+        let waitingInterval;
         let isPaused = false;
-        let totalSeconds = 3600; // Default to 60 minutes (3600 seconds)
+        let totalSeconds = 3600; 
         let originalTotalSeconds = 3600;
+        let timeRemainingAtEnd = 0;
+        let notificationPermission = 'default';
+        let useAdvancedSettings = false;
+        let targetStartTime = null;
+        let examStartTime = null;
+        let alertTimes = [30 * 60, 15 * 60, 5 * 60];
+
+        // --- เพิ่มฟังก์ชันจัดการ localStorage เพื่อบันทึกค่าการตั้งค่าต่างๆ ---
+        function saveSettings() {
+            const settings = {
+                totalSeconds: totalSeconds,
+                originalTotalSeconds: originalTotalSeconds,
+                darkMode: document.body.classList.contains('dark-mode'),
+                useAdvanced: useAdvancedSettings,
+                targetStartTime: targetStartTime ? targetStartTime.getTime() : null,
+                alertTimes: [
+                    parseInt(alert30Input.value) * 60,
+                    parseInt(alert15Input.value) * 60,
+                    parseInt(alert5Input.value) * 60
+                ]
+            };
+            localStorage.setItem('timerSettings', JSON.stringify(settings));
+        }
+
+        // --- โหลดค่าการตั้งค่าที่บันทึกไว้ ---
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('timerSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                totalSeconds = settings.totalSeconds;
+                originalTotalSeconds = settings.originalTotalSeconds;
+                useAdvancedSettings = settings.useAdvanced;
+                if (settings.targetStartTime) {
+                    targetStartTime = new Date(settings.targetStartTime);
+                }
+                if (settings.alertTimes) {
+                    alertTimes = settings.alertTimes;
+                    alert30Input.value = settings.alertTimes[0] / 60;
+                    alert15Input.value = settings.alertTimes[1] / 60;
+                    alert5Input.value = settings.alertTimes[2] / 60;
+                }
+
+                if (settings.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    darkModeToggle.textContent = 'สลับโหมดสว่าง';
+                }
+                
+                // ตั้งค่าค่าเริ่มต้นใน modal
+                advancedToggle.checked = useAdvancedSettings;
+                toggleAdvancedSettingsDisplay();
+                hoursInput.value = Math.floor(originalTotalSeconds / 3600);
+                minutesInput.value = Math.floor((originalTotalSeconds % 3600) / 60);
+                secondsInput.value = originalTotalSeconds % 60;
+                if (targetStartTime) {
+                    startTimeHoursInput.value = String(targetStartTime.getHours()).padStart(2, '0');
+                    startTimeMinutesInput.value = String(targetStartTime.getMinutes()).padStart(2, '0');
+                    startTimeSecondsInput.value = String(targetStartTime.getSeconds()).padStart(2, '0');
+                }
+            }
+        }
+        
+        // --- Web Notification API functions ---
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                console.warn("This browser does not support desktop notification");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                notificationPermission = permission;
+                if (permission === "granted") {
+                    console.log("Notification permission granted.");
+                } else if (permission === "denied") {
+                    console.log("Notification permission denied.");
+                }
+            });
+        }
+        
+        function sendNotification(title, body) {
+            if (notificationPermission === 'granted') {
+                new Notification(title, { body: body });
+            }
+        }
 
         // Function to update the current time and date
         function updateCurrentTime() {
@@ -212,28 +348,23 @@
         function updateDisplayColors(secondsRemaining, totalSeconds) {
             const percentage = (secondsRemaining / totalSeconds) * 100;
             
-            // Update progress bar
             progressBar.style.width = `${percentage}%`;
 
-            // Remove previous classes for both progress bar and app container
             progressBar.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
             appContainer.classList.remove('glow-red', 'glow-yellow', 'glow-green');
+            countdownEl.classList.remove('text-red-500', 'text-yellow-500', 'text-green-500');
 
-            // Add new classes based on percentage
             if (percentage <= 10) {
                 progressBar.classList.add('bg-red-500');
                 countdownEl.classList.add('text-red-500');
-                countdownEl.classList.remove('text-yellow-500', 'text-green-500');
                 appContainer.classList.add('glow-red');
             } else if (percentage <= 25) {
                 progressBar.classList.add('bg-yellow-500');
                 countdownEl.classList.add('text-yellow-500');
-                countdownEl.classList.remove('text-red-500', 'text-green-500');
                 appContainer.classList.add('glow-yellow');
             } else {
                 progressBar.classList.add('bg-green-500');
                 countdownEl.classList.add('text-green-500');
-                countdownEl.classList.remove('text-red-500', 'text-yellow-500');
                 appContainer.classList.add('glow-green');
             }
         }
@@ -249,6 +380,14 @@
 
         // Main countdown function
         function countdown() {
+            // Clear any existing interval to prevent multiple timers
+            clearInterval(timerInterval);
+            
+            // Set the start time if not already set
+            if (!examStartTime) {
+                examStartTime = new Date();
+            }
+
             timerInterval = setInterval(() => {
                 if (!isPaused) {
                     if (totalSeconds <= 0) {
@@ -257,22 +396,34 @@
                         appContainer.classList.remove('glow-green', 'glow-yellow', 'glow-red');
                         countdownEl.classList.add('text-red-500');
                         showAlert("หมดเวลาสอบแล้ว!");
-                        audioAlert.play(); // Play the sound alert
+                        sendNotification("หมดเวลาสอบ!", "เวลาสอบได้สิ้นสุดลงแล้ว");
+                        try {
+                            audioAlert.play(); // Play the sound alert
+                        } catch (e) {
+                            console.error("Audio playback blocked:", e);
+                        }
                         startBtn.disabled = true;
                         pauseBtn.disabled = true;
+                        summaryButton.classList.remove('hidden');
                         updateDisplayColors(0, originalTotalSeconds);
+                        timeRemainingAtEnd = 0;
                         return;
                     }
 
                     const remaining = totalSeconds;
 
-                    // Alert logic
-                    if (remaining === 30 * 60) {
-                        showAlert("เหลือเวลา 30 นาที");
-                    } else if (remaining === 15 * 60) {
-                        showAlert("เหลือเวลา 15 นาที");
-                    } else if (remaining === 5 * 60) {
-                        showAlert("เหลือเวลา 5 นาที");
+                    // Alert logic based on configurable alert times
+                    if (alertTimes.includes(remaining)) {
+                        const remainingMinutes = remaining / 60;
+                        showAlert(`เหลือเวลา ${remainingMinutes} นาที`);
+                        sendNotification(`เหลือเวลา ${remainingMinutes} นาที`, "โปรดตรวจสอบการทำข้อสอบของคุณ");
+                        if (remainingMinutes <= 5) {
+                            try {
+                                audioAlert.play();
+                            } catch (e) {
+                                console.error("Audio playback blocked:", e);
+                            }
+                        }
                     }
 
                     totalSeconds--;
@@ -282,17 +433,70 @@
             }, 1000);
         }
 
+        // Function to toggle display of settings based on checkbox
+        function toggleAdvancedSettingsDisplay() {
+            if (advancedToggle.checked) {
+                advancedSettingsDiv.classList.remove('hidden');
+            } else {
+                advancedSettingsDiv.classList.add('hidden');
+            }
+        }
+        
+        // Function to check if it's time to start the countdown
+        function checkAndStart() {
+            const now = new Date();
+            if (targetStartTime && now.getTime() >= targetStartTime.getTime()) {
+                clearInterval(waitingInterval);
+                countdownEl.textContent = formatTime(totalSeconds);
+                statusMessageEl.classList.add('hidden');
+                countdown();
+                sendNotification("การจับเวลาเริ่มแล้ว!", "การจับเวลาที่คุณกำหนดได้เริ่มต้นขึ้นแล้ว");
+                startBtn.textContent = "เริ่ม";
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            } else {
+                const targetTimeStr = `${String(targetStartTime.getHours()).padStart(2, '0')}:${String(targetStartTime.getMinutes()).padStart(2, '0')}:${String(targetStartTime.getSeconds()).padStart(2, '0')}`;
+                statusMessageEl.textContent = `กำลังรอเวลาเริ่มต้น: ${targetTimeStr}`;
+            }
+        }
+
         // Event listeners
         startBtn.addEventListener('click', () => {
-            if (isPaused) {
-                isPaused = false;
-                startBtn.textContent = "เริ่ม";
+            requestNotificationPermission();
+            
+            // Prime the audio on the first user interaction
+            try {
+                audioAlert.play();
+                audioAlert.pause();
+                audioAlert.currentTime = 0;
+            } catch(e) {
+                console.error("Audio prime failed:", e);
             }
-            countdown();
-            startBtn.disabled = true;
-            pauseBtn.disabled = false;
+
+            if (useAdvancedSettings && targetStartTime) {
+                startBtn.textContent = "เริ่ม";
+                startBtn.disabled = true;
+                pauseBtn.disabled = true;
+                statusMessageEl.classList.remove('hidden');
+                clearInterval(waitingInterval);
+                waitingInterval = setInterval(checkAndStart, 1000);
+                checkAndStart(); // Initial check
+            } else if (isPaused) {
+                isPaused = false;
+                startBtn.textContent = "ดำเนินการต่อ";
+                statusMessageEl.classList.add('hidden');
+                countdown();
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            } else {
+                countdown();
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+            }
+
             resetBtn.disabled = false;
             openSettingsBtn.disabled = true;
+            summaryButton.classList.add('hidden');
         });
 
         pauseBtn.addEventListener('click', () => {
@@ -301,12 +505,17 @@
             startBtn.textContent = "ดำเนินการต่อ";
             startBtn.disabled = false;
             pauseBtn.disabled = true;
+            statusMessageEl.textContent = 'จับเวลาถูกหยุดชั่วคราว';
+            statusMessageEl.classList.remove('hidden');
         });
 
         resetBtn.addEventListener('click', () => {
             clearInterval(timerInterval);
+            clearInterval(waitingInterval);
             isPaused = false;
             totalSeconds = originalTotalSeconds;
+            timeRemainingAtEnd = totalSeconds;
+            examStartTime = null;
             countdownEl.textContent = formatTime(totalSeconds);
             startBtn.textContent = "เริ่ม";
             startBtn.disabled = false;
@@ -314,10 +523,21 @@
             resetBtn.disabled = true;
             openSettingsBtn.disabled = false;
             alertBox.classList.add('hidden');
+            statusMessageEl.classList.add('hidden');
+            summaryButton.classList.add('hidden');
             updateDisplayColors(totalSeconds, originalTotalSeconds);
         });
 
         openSettingsBtn.addEventListener('click', () => {
+            // Set modal inputs to current values
+            hoursInput.value = Math.floor(originalTotalSeconds / 3600);
+            minutesInput.value = Math.floor((originalTotalSeconds % 3600) / 60);
+            secondsInput.value = originalTotalSeconds % 60;
+            if (targetStartTime) {
+                startTimeHoursInput.value = String(targetStartTime.getHours()).padStart(2, '0');
+                startTimeMinutesInput.value = String(targetStartTime.getMinutes()).padStart(2, '0');
+                startTimeSecondsInput.value = String(targetStartTime.getSeconds()).padStart(2, '0');
+            }
             settingsModal.classList.remove('hidden');
         });
 
@@ -325,16 +545,42 @@
             settingsModal.classList.add('hidden');
         });
 
-setBtn.addEventListener('click', () => {
+        advancedToggle.addEventListener('change', () => {
+            useAdvancedSettings = advancedToggle.checked;
+            toggleAdvancedSettingsDisplay();
+        });
+
+        setBtn.addEventListener('click', () => {
             const h = parseInt(hoursInput.value) || 0;
             const m = parseInt(minutesInput.value) || 0;
             const s = parseInt(secondsInput.value) || 0;
-            totalSeconds = (h * 3600) + (m * 60) + s;
-            originalTotalSeconds = totalSeconds;
-            if (totalSeconds <= 0) {
+            const newTotalSeconds = (h * 3600) + (m * 60) + s;
+            
+            if (newTotalSeconds <= 0) {
                 showAlert("โปรดตั้งเวลาที่ถูกต้อง");
                 return;
             }
+
+            if (useAdvancedSettings) {
+                const startH = parseInt(startTimeHoursInput.value) || 0;
+                const startM = parseInt(startTimeMinutesInput.value) || 0;
+                const startS = parseInt(startTimeSecondsInput.value) || 0;
+                
+                const now = new Date();
+                targetStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM, startS);
+                
+                // If the set time is in the past, add 24 hours to it.
+                if (targetStartTime.getTime() < now.getTime()) {
+                    targetStartTime.setDate(targetStartTime.getDate() + 1);
+                }
+            } else {
+                targetStartTime = null; // Clear advanced setting
+            }
+
+            originalTotalSeconds = newTotalSeconds;
+            totalSeconds = originalTotalSeconds;
+            timeRemainingAtEnd = totalSeconds;
+            
             countdownEl.textContent = formatTime(totalSeconds);
             settingsModal.classList.add('hidden');
             startBtn.disabled = false;
@@ -342,6 +588,7 @@ setBtn.addEventListener('click', () => {
             openSettingsBtn.disabled = false;
             alertBox.classList.add('hidden');
             updateDisplayColors(totalSeconds, originalTotalSeconds);
+            saveSettings();
         });
 
         // Dark mode functionality
@@ -352,6 +599,53 @@ setBtn.addEventListener('click', () => {
             } else {
                 darkModeToggle.textContent = 'สลับโหมด';
             }
+            saveSettings();
+        });
+        
+        // Print Summary Functionality
+        function generateSummaryContent() {
+            let usedTime = originalTotalSeconds - timeRemainingAtEnd;
+            let usedHours = Math.floor(usedTime / 3600);
+            let usedMinutes = Math.floor((usedTime % 3600) / 60);
+            let usedSeconds = usedTime % 60;
+            const usedTimeFormatted = `${String(usedHours).padStart(2, '0')}:${String(usedMinutes).padStart(2, '0')}:${String(usedSeconds).padStart(2, '0')}`;
+            
+            let endTime = new Date(examStartTime.getTime() + (usedTime * 1000));
+
+            return `
+                <div class="space-y-4">
+                    <p class="text-gray-700"><strong>ระยะเวลาที่กำหนด:</strong> ${formatTime(originalTotalSeconds)}</p>
+                    <p class="text-gray-700"><strong>ระยะเวลาที่ใช้จริง:</strong> ${usedTimeFormatted}</p>
+                    <p class="text-gray-700"><strong>เวลาเริ่มต้น:</strong> ${examStartTime.toLocaleTimeString('th-TH')}</p>
+                    <p class="text-gray-700"><strong>เวลาสิ้นสุด:</strong> ${endTime.toLocaleTimeString('th-TH')}</p>
+                </div>
+            `;
+        }
+        
+        summaryButton.addEventListener('click', () => {
+            summaryContent.innerHTML = generateSummaryContent();
+            summaryModal.classList.remove('hidden');
+        });
+        
+        closeSummaryButton.addEventListener('click', () => {
+            summaryModal.classList.add('hidden');
+        });
+
+        printSummaryButton.addEventListener('click', () => {
+            // สร้าง container ใหม่สำหรับเนื้อหาที่จะพิมพ์
+            const printContent = document.createElement('div');
+            printContent.id = 'print-area';
+            printContent.classList.add('p-8');
+            printContent.innerHTML = `
+                <h1 class="text-2xl font-bold mb-4">รายงานสรุปการจับเวลา</h1>
+                ${generateSummaryContent()}
+            `;
+            document.body.appendChild(printContent);
+            
+            window.print();
+            
+            // ลบ container ที่สร้างขึ้นเพื่อพิมพ์ออก
+            document.body.removeChild(printContent);
         });
 
         // Fullscreen functionality
@@ -372,12 +666,16 @@ setBtn.addEventListener('click', () => {
                 fullscreenBtn.textContent = 'เข้าสู่โหมดเต็มหน้าจอ';
             }
         });
-
-        // Initialize display
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 1000);
-        countdownEl.textContent = formatTime(originalTotalSeconds);
-        updateDisplayColors(originalTotalSeconds, originalTotalSeconds);
+        
+        // Initialize display on load
+        window.onload = function() {
+            loadSettings();
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            countdownEl.textContent = formatTime(totalSeconds);
+            updateDisplayColors(totalSeconds, originalTotalSeconds);
+            timeRemainingAtEnd = totalSeconds;
+        }
     </script>
 </body>
 </html>
