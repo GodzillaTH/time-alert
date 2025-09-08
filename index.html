@@ -12,13 +12,64 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
+            transition: background-color 0.5s ease-in-out;
         }
-        .timer-glow {
-            animation: glow 1.5s infinite alternate;
+        /* Dynamic Glow Animations based on color */
+        .glow-green {
+            animation: glow-green 1.5s infinite alternate;
         }
-        @keyframes glow {
+        @keyframes glow-green {
             from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
             to { text-shadow: 0 0 10px #34d399, 0 0 20px #34d399, 0 0 30px #34d399; }
+        }
+        .glow-yellow {
+            animation: glow-yellow 1.5s infinite alternate;
+        }
+        @keyframes glow-yellow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            to { text-shadow: 0 0 10px #f59e0b, 0 0 20px #f59e0b, 0 0 30px #f59e0b; }
+        }
+        .glow-red {
+            animation: glow-red 1.5s infinite alternate;
+        }
+        @keyframes glow-red {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            to { text-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444; }
+        }
+
+        /* Dark Mode styles */
+        body.dark-mode {
+            background-color: #1a202c;
+        }
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+        .dark-mode .text-gray-800 {
+            color: #e2e8f0;
+        }
+        .dark-mode .text-gray-500 {
+            color: #a0aec0;
+        }
+        .dark-mode .text-gray-400 {
+            color: #718096;
+        }
+        .dark-mode .text-gray-700 {
+            color: #e2e8f0;
+        }
+        .dark-mode .border-gray-300 {
+            border-color: #4a5568;
+        }
+        .dark-mode .shadow-2xl {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .dark-mode .bg-yellow-100 {
+            background-color: #4a5568;
+        }
+        .dark-mode .border-yellow-300 {
+            border-color: #4a5568;
+        }
+        .dark-mode .text-yellow-800 {
+            color: #e2e8f0;
         }
     </style>
 </head>
@@ -37,7 +88,13 @@
 
         <!-- Main Timer Display -->
         <div class="flex flex-col items-center justify-center mb-8">
-            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 timer-glow">00:00:00</div>
+            <div id="countdown" class="text-6xl md:text-8xl font-extrabold text-green-500 glow-green transition-colors duration-500">00:00:00</div>
+            
+            <!-- Horizontal Progress Bar -->
+            <div id="progressBarContainer" class="w-full h-2 bg-gray-200 rounded-full mt-4 overflow-hidden">
+                <div id="progressBar" class="h-full rounded-full transition-all duration-1000 ease-linear"></div>
+            </div>
+
             <div id="current-time" class="mt-2 text-xl font-medium text-gray-400"></div>
         </div>
 
@@ -62,10 +119,13 @@
             </button>
         </div>
 
-        <!-- Fullscreen Button -->
-        <div class="flex justify-center mt-4">
+        <!-- Utility Buttons -->
+        <div class="flex justify-center items-center gap-6 mt-4">
             <button id="fullscreenButton" class="text-gray-500 text-sm font-medium hover:text-blue-500 transition-colors duration-200">
                 เข้าสู่โหมดเต็มหน้าจอ
+            </button>
+            <button id="darkModeToggle" class="text-gray-500 text-sm font-medium hover:text-gray-800 transition-colors duration-200">
+                สลับโหมด
             </button>
         </div>
 
@@ -123,7 +183,10 @@
         const alertBox = document.getElementById('alert-box');
         const alertMessage = document.getElementById('alert-message');
         const audioAlert = document.getElementById('audioAlert');
-
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const progressBar = document.getElementById('progressBar');
+        const appContainer = document.getElementById('app-container');
+        
         // State variables
         let timerInterval;
         let isPaused = false;
@@ -144,6 +207,30 @@
             const s = String(seconds % 60).padStart(2, '0');
             return `${h}:${m}:${s}`;
         }
+        
+        // Function to update the progress bar and countdown text color
+        function updateDisplayColors(secondsRemaining, totalSeconds) {
+            const percentage = (secondsRemaining / totalSeconds) * 100;
+            
+            // Update progress bar
+            progressBar.style.width = `${percentage}%`;
+
+            // Remove previous classes
+            progressBar.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
+            countdownEl.classList.remove('text-red-500', 'text-yellow-500', 'text-green-500', 'glow-red', 'glow-yellow', 'glow-green');
+
+            // Add new classes based on percentage
+            if (percentage <= 10) {
+                progressBar.classList.add('bg-red-500');
+                countdownEl.classList.add('text-red-500', 'glow-red');
+            } else if (percentage <= 25) {
+                progressBar.classList.add('bg-yellow-500');
+                countdownEl.classList.add('text-yellow-500', 'glow-yellow');
+            } else {
+                progressBar.classList.add('bg-green-500');
+                countdownEl.classList.add('text-green-500', 'glow-green');
+            }
+        }
 
         // Function to show alerts
         function showAlert(message) {
@@ -161,12 +248,13 @@
                     if (totalSeconds <= 0) {
                         clearInterval(timerInterval);
                         countdownEl.textContent = "หมดเวลา!";
-                        countdownEl.classList.remove('timer-glow');
+                        countdownEl.classList.remove('glow-green', 'glow-yellow', 'glow-red');
                         countdownEl.classList.add('text-red-500');
                         showAlert("หมดเวลาสอบแล้ว!");
                         audioAlert.play(); // Play the sound alert
                         startBtn.disabled = true;
                         pauseBtn.disabled = true;
+                        updateDisplayColors(0, originalTotalSeconds);
                         return;
                     }
 
@@ -183,6 +271,7 @@
 
                     totalSeconds--;
                     countdownEl.textContent = formatTime(remaining);
+                    updateDisplayColors(totalSeconds, originalTotalSeconds);
                 }
             }, 1000);
         }
@@ -219,8 +308,7 @@
             resetBtn.disabled = true;
             openSettingsBtn.disabled = false;
             alertBox.classList.add('hidden');
-            countdownEl.classList.remove('text-red-500');
-            countdownEl.classList.add('timer-glow');
+            updateDisplayColors(totalSeconds, originalTotalSeconds);
         });
 
         openSettingsBtn.addEventListener('click', () => {
@@ -247,8 +335,17 @@
             resetBtn.disabled = false;
             openSettingsBtn.disabled = false;
             alertBox.classList.add('hidden');
-            countdownEl.classList.remove('text-red-500');
-            countdownEl.classList.add('timer-glow');
+            updateDisplayColors(totalSeconds, originalTotalSeconds);
+        });
+
+        // Dark mode functionality
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                darkModeToggle.textContent = 'สลับโหมดสว่าง';
+            } else {
+                darkModeToggle.textContent = 'สลับโหมด';
+            }
         });
 
         // Fullscreen functionality
@@ -274,6 +371,7 @@
         updateCurrentTime();
         setInterval(updateCurrentTime, 1000);
         countdownEl.textContent = formatTime(originalTotalSeconds);
+        updateDisplayColors(originalTotalSeconds, originalTotalSeconds);
     </script>
 </body>
 </html>
