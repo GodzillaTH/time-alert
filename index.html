@@ -102,6 +102,9 @@
         </div>
     </div>
 
+    <!-- Audio element for the alert sound -->
+    <audio id="audioAlert" src="https://www.soundjay.com/button/beep-07a.mp3" preload="auto"></audio>
+
     <script>
         // DOM Elements
         const countdownEl = document.getElementById('countdown');
@@ -119,6 +122,7 @@
         const secondsInput = document.getElementById('modal-seconds');
         const alertBox = document.getElementById('alert-box');
         const alertMessage = document.getElementById('alert-message');
+        const audioAlert = document.getElementById('audioAlert');
 
         // State variables
         let timerInterval;
@@ -160,6 +164,7 @@
                         countdownEl.classList.remove('timer-glow');
                         countdownEl.classList.add('text-red-500');
                         showAlert("หมดเวลาสอบแล้ว!");
+                        audioAlert.play(); // Play the sound alert
                         startBtn.disabled = true;
                         pauseBtn.disabled = true;
                         return;
